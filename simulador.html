@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Celular</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .phone-container {
+            width: 360px;
+            height: 720px;
+            background-color: #212121;
+            border-radius: 40px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border: 8px solid #424242;
+        }
+
+        .screen {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+            /* Fundo de tela cinza claro */
+            background: url('https://placehold.co/360x720/d3d3d3/000?text=Wallpaper') center/cover no-repeat;
+        }
+
+        .status-bar {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 16px;
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(5px);
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 10;
+        }
+
+        .status-bar-item {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .home-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            flex-grow: 1;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .app-icon {
+            width: 80px;
+            height: 80px;
+            background-color: #333;
+            border-radius: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .app-icon:hover {
+            transform: scale(1.05);
+        }
+
+        .messages-app {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #1a1a1a;
+            transform: translateY(100%);
+            transition: transform 0.5s ease-in-out;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .messages-app.active {
+            transform: translateY(0);
+        }
+
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background-color: #212121;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 5;
+        }
+
+        .back-button {
+            background: none;
+            border: none;
+            color: #818cf8;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .chat-list {
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        .chat-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid #333;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .chat-item:hover {
+            background-color: #2c2c2c;
+        }
+
+        .chat-avatar {
+            /* Tamanho fixo para garantir que todos os avatares sejam iguais */
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 18px;
+            color: #fff;
+            margin-right: 16px;
+            flex-shrink: 0;
+        }
+        
+        .chat-info {
+            flex-grow: 1;
+            /* Garante que o contêiner de informações ocupe o espaço restante */
+            min-width: 0;
+        }
+        
+        .chat-name {
+            font-weight: 600;
+            color: #fff;
+        }
+        
+        .last-message {
+            font-size: 14px;
+            color: #999;
+            /* Trunca o texto com reticências se for muito longo */
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .chat-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #1a1a1a;
+            transform: translateY(100%);
+            transition: transform 0.5s ease-in-out;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-screen.active {
+            transform: translateY(0);
+        }
+        
+        .chat-header {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            background-color: #212121;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .chat-header-info {
+            flex-grow: 1;
+            margin-left: 12px;
+        }
+
+        .chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message-bubble {
+            max-width: 80%;
+            padding: 10px 14px;
+            border-radius: 20px;
+            margin-bottom: 8px;
+            word-wrap: break-word;
+        }
+
+        .sent {
+            background-color: #6366f1;
+            align-self: flex-end;
+            color: #fff;
+            border-bottom-right-radius: 5px;
+        }
+
+        .received {
+            background-color: #333;
+            align-self: flex-start;
+            color: #e0e0e0;
+            border-bottom-left-radius: 5px;
+        }
+        
+        .message-time {
+            font-size: 10px;
+            text-align: right;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        .message-input {
+            display: flex;
+            padding: 12px;
+            background-color: #212121;
+        }
+
+        .message-input input {
+            flex-grow: 1;
+            background-color: #333;
+            border: none;
+            border-radius: 24px;
+            padding: 12px 16px;
+            color: #fff;
+            outline: none;
+        }
+
+        .message-input button {
+            background-color: #6366f1;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            margin-left: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+    </style>
+</head>
+<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen p-4">
+
+    <div class="phone-container rounded-3xl shadow-2xl">
+        <div class="status-bar">
+            <span class="status-bar-item">9:17</span>
+            <span class="status-bar-item">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block -mt-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v5.586l-2.293-2.293a1 1 0 00-1.414 1.414l4 4a1 1 0 001.414 0l4-4a1 1 0 00-1.414-1.414L11 11.586V6z" clip-rule="evenodd" />
+                </svg>
+                LTE
+            </span>
+        </div>
+
+        <!-- Home Screen -->
+        <div id="homeScreen" class="home-screen">
+            <div id="messagesIcon" class="app-icon mb-4" onclick="openMessagesApp()">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+            </div>
+            <span class="text-sm">Mensagens</span>
+        </div>
+
+        <!-- Messages App -->
+        <div id="messagesApp" class="messages-app">
+            <!-- Header do app de mensagens -->
+            <div class="app-header">
+                <button class="back-button" onclick="closeMessagesApp()">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                </button>
+                <h2 class="text-xl font-semibold">Conversas</h2>
+                <div></div> <!-- Spacer -->
+            </div>
+            
+            <!-- Lista de Conversas -->
+            <div id="chatList" class="chat-list">
+                <!-- Conversas serão inseridas aqui via JavaScript -->
+            </div>
+        </div>
+
+        <!-- Chat Screen -->
+        <div id="chatScreen" class="chat-screen">
+            <!-- Chat Header -->
+            <div class="chat-header">
+                <button class="back-button" onclick="closeChatScreen()">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                </button>
+                <div class="chat-avatar" id="chatAvatarHeader"></div>
+                <div class="chat-header-info">
+                    <h3 class="text-lg font-semibold" id="chatNameHeader"></h3>
+                    <span class="text-sm text-gray-500" id="chatStatus"></span>
+                </div>
+            </div>
+
+            <!-- Mensagens do Chat -->
+            <div id="chatMessages" class="chat-messages">
+                <!-- Mensagens serão inseridas aqui via JavaScript -->
+            </div>
+
+            <!-- Input de Mensagem -->
+            <div class="message-input">
+                <input type="text" id="messageInput" placeholder="Digite uma mensagem..." class="rounded-full">
+                <button onclick="sendMessage()">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 00.183.323l.117.165 3.568 2.046a1 1 0 00.999-.07l3.868-2.585a1 1 0 00.285-.308L14 16l-3.006-2.004-.707.707a1 1 0 01-1.414 0l-.707-.707-.707-.707a1 1 0 010-1.414l.707-.707-.707-.707a1 1 0 010-1.414l.707-.707-.707-.707a1 1 0 010-1.414l.707-.707.707.707a1 1 0 011.414 0l.707.707.707.707a1 1 0 011.414 0l.707-.707.707-.707a1 1 0 011.414 0l.707.707.707.707a1 1 0 010 1.414l-.707.707-.707.707a1 1 0 01-1.414 0l-.707-.707-.707-.707z" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const phoneContainer = document.querySelector('.phone-container');
+        const messagesApp = document.getElementById('messagesApp');
+        const chatScreen = document.getElementById('chatScreen');
+        const chatList = document.getElementById('chatList');
+        const chatMessages = document.getElementById('chatMessages');
+        const chatNameHeader = document.getElementById('chatNameHeader');
+        const chatAvatarHeader = document.getElementById('chatAvatarHeader');
+        const messageInput = document.getElementById('messageInput');
+        const homeScreen = document.getElementById('homeScreen');
+
+        // Dados das conversas com as novas cores
+        const chats = [
+            {
+                id: 'mom',
+                name: 'Mãe ❤️',
+                avatar: 'M',
+                color: '#ff7f00', /* Laranja */
+                lastMessage: 'Vou chegar mais tarde hoje, tá?',
+                messages: [
+                    { type: 'received', text: 'Oi, filha! Tudo bem?', time: '10:00' },
+                    { type: 'sent', text: 'Tudo sim, e você?', time: '10:05' },
+                    { type: 'received', text: 'Tudo ótimo, só queria avisar que vou chegar mais tarde hoje, tá?', time: '12:30' },
+                    { type: 'sent', text: 'Beleza! A janta já tá pronta ou é pra pedir algo?', time: '12:31' },
+                ]
+            },
+            {
+                id: 'dad',
+                name: 'Pai 👨‍💼',
+                avatar: 'P',
+                color: '#008000', /* Verde */
+                lastMessage: 'Não esqueça de levar o cachorro para passear.',
+                messages: [
+                    { type: 'received', text: 'Filha, como está a escola?', time: '09:00' },
+                    { type: 'sent', text: 'Tranquilo, pai! Tive prova de história hoje.', time: '09:05' },
+                    { type: 'received', text: 'E como foi? Se precisar de ajuda, me avisa.', time: '09:06' },
+                    { type: 'sent', text: 'Acho que fui bem. Valeu!', time: '11:10' },
+                    { type: 'received', text: 'Ah, não esqueça de levar o cachorro para passear.', time: '17:00' },
+                    { type: 'sent', text: 'Pode deixar!', time: '17:01' },
+                ]
+            },
+            {
+                id: 'joao',
+                name: 'João 👦',
+                avatar: 'J',
+                color: '#0000ff', /* Azul */
+                lastMessage: 'Pegou meu carregador?',
+                messages: [
+                    { type: 'received', text: 'Ei, você pegou meu carregador de novo?', time: '15:20' },
+                    { type: 'sent', text: 'Peguei, mas já te devolvo. Tá na minha mesa.', time: '15:21' },
+                    { type: 'received', text: 'Beleza. E não esquece de me passar a série que você tava vendo. Me manda o nome de novo', time: '15:25' },
+                ]
+            },
+            {
+                id: 'friends',
+                name: 'Crias do 9º ano 🤙',
+                avatar: '9',
+                color: '#ffff00', /* Amarelo */
+                lastMessage: 'Gente, quem vai na festa da Nina sábado?',
+                messages: [
+                    { type: 'received', text: 'E aí galera, quem já fez o trabalho de ciências?', time: '14:00' },
+                    { type: 'sent', text: 'Eu ainda não comecei...', time: '14:02' },
+                    { type: 'received', text: 'Temos que fazer amanhã na biblioteca. Todo mundo vai?', time: '14:05' },
+                    { type: 'sent', text: 'Por mim, beleza.', time: '14:06' },
+                    { type: 'received', text: 'Gente, quem vai na festa da Nina sábado?', time: '19:30' },
+                ]
+            },
+            {
+                id: 'family',
+                name: 'Família 🏡',
+                avatar: 'F',
+                color: '#ffc0cb', /* Rosa */
+                lastMessage: 'Vocês viram essa notícia? https://fimdomundo/noticia-importante',
+                messages: [
+                    { type: 'received', text: 'Bom dia, família! - Vovó', time: '08:00' },
+                    { type: 'received', text: '❤️❤️ - Prima', time: '08:05' },
+                    { type: 'received', text: 'Vocês viram essa notícia? https://fimdomundo/noticia-importante', time: '12:00' },
+                ]
+            },
+            {
+                id: 'bestie',
+                name: 'BFF Ana 👯‍♀️',
+                avatar: '👯‍♀️',
+                color: '#a020f0', /* Roxo */
+                lastMessage: 'Você já terminou de ler o livro do curso?',
+                messages: [
+                    { type: 'received', text: 'Amiga, você já terminou de ler o livro do curso? Tô achando super chato.', time: '18:00' },
+                    { type: 'sent', text: 'Não terminei. É muito chato mesmo. Se for para a festa do João, me avisa!', time: '18:05' },
+                ]
+            }
+        ];
+        
+        // Renderiza a lista de conversas
+        function renderChatList() {
+            chatList.innerHTML = '';
+            chats.forEach(chat => {
+                const chatItem = document.createElement('div');
+                chatItem.className = 'chat-item';
+                chatItem.onclick = () => openChat(chat);
+                chatItem.innerHTML = `
+                    <div class="chat-avatar" style="background-color: ${chat.color};">${chat.avatar}</div>
+                    <div class="chat-info">
+                        <div class="chat-name">${chat.name}</div>
+                        <div class="last-message">${chat.lastMessage}</div>
+                    </div>
+                `;
+                chatList.appendChild(chatItem);
+            });
+        }
+
+        // Abre o app de mensagens
+        function openMessagesApp() {
+            messagesApp.classList.add('active');
+            homeScreen.style.transform = 'translateY(-100%)';
+            renderChatList();
+        }
+
+        // Fecha o app de mensagens
+        function closeMessagesApp() {
+            messagesApp.classList.remove('active');
+            homeScreen.style.transform = 'translateY(0)';
+        }
+
+        // Abre uma conversa específica
+        function openChat(chat) {
+            chatScreen.classList.add('active');
+            chatNameHeader.textContent = chat.name;
+            chatAvatarHeader.textContent = chat.avatar;
+            chatAvatarHeader.style.backgroundColor = chat.color;
+            renderChatMessages(chat.messages);
+            chatMessages.scrollTop = chatMessages.scrollHeight; // Rola para o final
+        }
+
+        // Fecha a conversa e volta para a lista
+        function closeChatScreen() {
+            chatScreen.classList.remove('active');
+        }
+
+        // Renderiza as mensagens de uma conversa
+        function renderChatMessages(messages) {
+            chatMessages.innerHTML = '';
+            messages.forEach(msg => {
+                const msgBubble = document.createElement('div');
+                msgBubble.className = `message-bubble ${msg.type}`;
+                msgBubble.innerHTML = `
+                    <div>${msg.text}</div>
+                    <div class="message-time">${msg.time}</div>
+                `;
+                chatMessages.appendChild(msgBubble);
+            });
+        }
+
+        // Envia uma mensagem
+        function sendMessage() {
+            const currentChatId = chatNameHeader.textContent.trim();
+            const messageText = messageInput.value.trim();
+            if (messageText === '') return;
+
+            const now = new Date();
+            const time = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+            const newMessage = { type: 'sent', text: messageText, time: time };
+            
+            const currentChat = chats.find(chat => chat.name.trim() === currentChatId);
+            if (currentChat) {
+                currentChat.messages.push(newMessage);
+                currentChat.lastMessage = messageText;
+                renderChatMessages(currentChat.messages);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                messageInput.value = '';
+            }
+        }
+
+        // Inicializa a simulação na tela inicial
+        renderChatList();
+        
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+    </script>
+
+</body>
+</html>
